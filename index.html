@@ -1,24 +1,20 @@
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { 
-    getFirestore, 
-    collection, 
-    addDoc,
-    serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+    
 const firebaseConfig = {
-  apiKey: "ТВОЙ_API_KEY",
+  apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
   authDomain: "marokuia.firebaseapp.com",
   projectId: "marokuia",
-  storageBucket: "marokuia.appspot.com",
+  storageBucket: "marokuia.firebasestorage.app",
   messagingSenderId: "202954413932",
-  appId: "1:202954413932:web:0d6f7a09111edb09ecc549"
+  appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
+  measurementId: "G-5NDDW98698"
 };
 
 // Инициализация
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const analytics = getAnalytics(app);
 
 const form = document.getElementById("feedbackForm");
 
