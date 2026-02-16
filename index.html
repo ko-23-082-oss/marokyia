@@ -17,7 +17,7 @@
             background: white;
             padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 300px;
         }
 
@@ -33,7 +33,7 @@
         button {
             width: 100%;
             padding: 10px;
-            background: #4b40b0;
+            background: #f4b400;
             border: none;
             color: white;
             font-weight: bold;
@@ -42,74 +42,67 @@
         }
 
         button:hover {
-            background: #3a3390;
+            background: #dfa400;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="form-container">
-        <h3>Отправить заявку</h3>
-        <form id="feedbackForm">
-            <input type="text" id="userName" placeholder="Ваше имя" required>
-            <input type="email" id="userEmail" placeholder="Ваш Email" required>
-            <button type="submit">Отправить в облако</button>
-        </form>
-    </div>
+<div class="form-container">
+    <h3>Отправить заявку</h3>
+
+    <form id="feedbackForm">
+        <input type="text" id="userName" placeholder="Ваше имя" required>
+        <input type="email" id="userEmail" placeholder="Ваш Email" required>
+        <button type="submit">Отправить в облако</button>
+    </form>
+</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { 
-    getFirestore, 
-    collection, 
-    addDoc,
-    serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    // Импорт Firebase
+   import { initializeApp } from "firebase/app";
+   import { getAnalytics } from "firebase/analytics";
 
-// Конфигурация Firebase
-const firebaseConfig = {
-    apiKey: "ТВОЙ_API_KEY",
-    authDomain: "marokuia.firebaseapp.com",
-    projectId: "marokuia",
-    storageBucket: "marokuia.appspot.com",
-    messagingSenderId: "202954413932",
-    appId: "1:202954413932:web:0d6f7a09111edb09ecc549"
+    const firebaseConfig = {
+  const firebaseConfig = {
+  apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
+  authDomain: "marokuia.firebaseapp.com",
+  projectId: "marokuia",
+  storageBucket: "marokuia.firebasestorage.app",
+  messagingSenderId: "202954413932",
+  appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
+  measurementId: "G-5NDDW98698"
 };
 
-// Инициализация
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    // Инициализация Firebase
+   const app = initializeApp(firebaseConfig);
+   const analytics = getAnalytics(app);
 
-// Обработка отправки формы
-const form = document.getElementById("feedbackForm");
+    // Обработчик формы
+    const form = document.getElementById("feedbackForm");
 
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const nameInput = document.getElementById("userName").value.trim();
-    const emailInput = document.getElementById("userEmail").value.trim();
+        const nameInput = document.getElementById("userName").value;
+        const emailInput = document.getElementById("userEmail").value;
 
-    if (!nameInput || !emailInput) {
-        alert("Заполните все поля!");
-        return;
-    }
+        try {
+            await addDoc(collection(db, "requests"), {
+                name: nameInput,
+                email: emailInput,
+                timestamp: new Date()
+            });
 
-    try {
-        await addDoc(collection(db, "requests"), {
-            name: nameInput,
-            email: emailInput,
-            timestamp: serverTimestamp()
-        });
+            alert("Готово! Данные сохранены в Firebase.");
+            form.reset();
 
-        alert("Готово! Данные сохранены в Firebase.");
-        form.reset();
-
-    } catch (error) {
-        console.error("Ошибка записи:", error);
-        alert("Ошибка при отправке. Проверь консоль.");
-    }
-});
+        } catch (error) {
+            console.error("Ошибка записи:", error);
+            alert("Ошибка при отправке.");
+        }
+    });
 </script>
 
 </body>
