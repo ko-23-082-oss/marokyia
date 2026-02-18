@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Marokyia</title>
+    <title>marokyia</title>
     <style>
         body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -33,18 +33,17 @@
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     // КОНФИГУРАЦИЯ
-   const firebaseConfig = {
-  apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
-  authDomain: "marokuia.firebaseapp.com",
-  projectId: "marokuia",
-  storageBucket: "marokuia.firebasestorage.app",
-  messagingSenderId: "202954413932",
-  appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
-  measurementId: "G-5NDDW98698"
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
+        authDomain: "marokuia.firebaseapp.com",
+        projectId: "marokuia",
+        storageBucket: "marokuia.firebasestorage.app",
+        messagingSenderId: "202954413932",
+        appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
+        measurementId: "G-5NDDW98698"
 };
-
     const app = initializeApp(firebaseConfig);
- const db = getFirestore(app);
+    const db = getFirestore(app);
 
     // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
     window.processLike = async (id) => {
@@ -84,7 +83,8 @@
                     <b>${data.name}</b>
                     <p style="margin: 5px 0;">${data.email}</p>
                     <button class="like-btn" onclick="processLike('${doc.id}')">👍 ${data.likes || 0}</button>
-                </div>               
+                </div>
+            `;
         });
     });
 </script>
