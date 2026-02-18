@@ -28,22 +28,23 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import {
-        import { initializeApp } from "firebase/app";
-        import { getAnalytics } from "firebase/analytics";
+        getFirestore, collection, addDoc, query, orderBy, onSnapshot,
+        serverTimestamp, updateDoc, doc, increment
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     // КОНФИГУРАЦИЯ
-    const firebaseConfig = {
-   apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
-   authDomain: "marokuia.firebaseapp.com",
-   projectId: "marokuia",
-   storageBucket: "marokuia.firebasestorage.app",
-   messagingSenderId: "202954413932",
-   appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
-   measurementId: "G-5NDDW98698"
- };
+   const firebaseConfig = {
+  apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
+  authDomain: "marokuia.firebaseapp.com",
+  projectId: "marokuia",
+  storageBucket: "marokuia.firebasestorage.app",
+  messagingSenderId: "202954413932",
+  appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
+  measurementId: "G-5NDDW98698"
+};
+
     const app = initializeApp(firebaseConfig);
- const analytics = getAnalytics(app);
+ const db = getFirestore(app);
 
     // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
     window.processLike = async (id) => {
