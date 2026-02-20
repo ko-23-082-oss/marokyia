@@ -1,92 +1,131 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>marokyia</title>
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-        .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.25; }
-        .like-btn:hover { background: #e2e6ea; }
-        .time { font-size: 11px; color: #999; float: right; }
-    </style>
+<meta charset="UTF-8">
+<title>marokyia</title>
+<style>
+body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px; }
+input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; }
+.post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
+.like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; }
+.time { font-size: 11px; color: #999; float: right; }
+footer { margin-top:40px; font-size:13px; color:#666; text-align:center; max-width:500px; }
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <h3>Панель управления данными</h3>
-        <input type="text" id="name" placeholder="Имя профиля">
-        <input type="email" id="email" placeholder="Рабочий Email">
-        <button id="mainBtn">Опубликовать в облако</button>
-    </div>
+<!-- Основная форма -->
+<div class="container">
+<h3>Панель управления данными</h3>
+<input type="text" id="name" placeholder="Имя профиля">
+<input type="email" id="email" placeholder="Рабочий Email">
+<button id="mainBtn">Опубликовать в облако</button>
+</div>
 
-    <div id="feed" style="width: 100%; max-width: 500px;"></div>
+<div id="feed" style="width:100%; max-width:500px;"></div>
+
+<!-- Форма отзывов -->
+<div class="container">
+<h3>Оставить отзыв</h3>
+<input type="text" id="reviewName" placeholder="Ваше имя">
+<textarea id="reviewText" placeholder="Ваш отзыв"></textarea>
+<button id="reviewBtn">Отправить отзыв</button>
+</div>
+
+<div id="reviewsFeed" style="width:100%; max-width:500px;"></div>
+
+<footer>
+<b>Информация о сайте:</b><br>
+Все данные хранятся в защищённой облачной базе данных.<br>
+Сайт использует безопасное соединение и серверную валидацию.<br>
+Важная информация сохраняется в базе данных и доступна в режиме реального времени.
+</footer>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import {
-        getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-        serverTimestamp, updateDoc, doc, increment
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+getFirestore, collection, addDoc, query, orderBy, onSnapshot,
+serverTimestamp, updateDoc, doc, increment
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    // КОНФИГУРАЦИЯ
-    const firebaseConfig = {
-        apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
-        authDomain: "marokuia.firebaseapp.com",
-        projectId: "marokuia",
-        storageBucket: "marokuia.firebasestorage.app",
-        messagingSenderId: "202954413932",
-        appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
-        measurementId: "G-5NDDW98698"
+const firebaseConfig = {
+apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
+authDomain: "marokuia.firebaseapp.com",
+projectId: "marokuia",
+storageBucket: "marokuia.firebasestorage.app",
+messagingSenderId: "202954413932",
+appId: "1:202954413932:web:0d6f7a09111edb09ecc549"
 };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
 
-    // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
-    window.processLike = async (id) => {
-        const docRef = doc(db, "requests", id);
-        try {
-            await updateDoc(docRef, { likes: increment(1) });
-        } catch (e) { console.error("Validation Error:", e.message); }
-    };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    // МЕТОД: ЗАПИСЬ С ВАЛИДАЦИЕЙ
-    document.getElementById('mainBtn').onclick = async () => {
-        const btn = document.getElementById('mainBtn');
-        btn.disabled = true;
-        try {
-            await addDoc(collection(db, "requests"), {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                likes: 0,
-                timestamp: serverTimestamp()
-            });
-            document.getElementById('email').value = "";
-        } catch (e) { alert("Ошибка безопасности: Данные отклонены сервером."); }
-        btn.disabled = false;
-    };
+/* ======================
+   ОСНОВНЫЕ ЗАПИСИ
+====================== */
 
-    // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
+window.processLike = async (id) => {
+const docRef = doc(db, "requests", id);
+await updateDoc(docRef, { likes: increment(1) });
+};
 
-    const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-        const feed = document.getElementById('feed');
-        feed.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            feed.innerHTML += `
-                <div class="post">
-                    <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-                    <b>${data.name}</b>
-                    <p style="margin: 5px 0;">${data.email}</p>
-                    <button class="like-btn" onclick="processLike('${doc.id}')">👍 ${data.likes || 0}</button>
-                </div>
-            `;
-        });
-    });
+document.getElementById('mainBtn').onclick = async () => {
+await addDoc(collection(db, "requests"), {
+name: document.getElementById('name').value,
+email: document.getElementById('email').value,
+likes: 0,
+timestamp: serverTimestamp()
+});
+};
+
+const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+onSnapshot(q, (snapshot) => {
+const feed = document.getElementById('feed');
+feed.innerHTML = "";
+snapshot.forEach((docItem) => {
+const data = docItem.data();
+feed.innerHTML += `
+<div class="post">
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<b>${data.name}</b>
+<p>${data.email}</p>
+<button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
+</div>
+`;
+});
+});
+
+/* ======================
+   СИСТЕМА ОТЗЫВОВ
+====================== */
+
+document.getElementById("reviewBtn").onclick = async () => {
+await addDoc(collection(db, "reviews"), {
+name: document.getElementById("reviewName").value,
+text: document.getElementById("reviewText").value,
+timestamp: serverTimestamp()
+});
+document.getElementById("reviewText").value = "";
+};
+
+const reviewQuery = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
+onSnapshot(reviewQuery, (snapshot) => {
+const reviewsFeed = document.getElementById("reviewsFeed");
+reviewsFeed.innerHTML = "";
+snapshot.forEach((docItem) => {
+const data = docItem.data();
+reviewsFeed.innerHTML += `
+<div class="post">
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<b>${data.name}</b>
+<p>${data.text}</p>
+</div>
+`;
+});
+});
 </script>
+
 </body>
 </html>
