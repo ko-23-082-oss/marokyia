@@ -1,48 +1,3 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<title>marokyia</title>
-<style>
-body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px; }
-input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; margin-top:5px;}
-button:disabled { background: #999; cursor: not-allowed; }
-.post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
-.like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; }
-.time { font-size: 11px; color: #999; float: right; }
-.hidden { display:none; }
-.auth-info { font-size:13px; margin-bottom:10px; color:#444; }
-</style>
-</head>
-<body>
-
-<div class="container">
-<h3>Авторизация</h3>
-<div class="auth-info" id="userInfo">Вы не авторизованы</div>
-<button id="loginBtn">Войти через Google</button>
-<button id="logoutBtn" class="hidden">Выйти</button>
-</div>
-
-<div class="container hidden" id="mainForm">
-<h3>Панель управления данными</h3>
-<input type="text" id="name" placeholder="Имя профиля">
-<input type="email" id="email" placeholder="Рабочий Email">
-<button id="mainBtn">Опубликовать</button>
-</div>
-
-<div id="feed" style="width:100%; max-width:500px;"></div>
-
-<div class="container hidden" id="reviewForm">
-<h3>Оставить отзыв</h3>
-<input type="text" id="reviewName" placeholder="Ваше имя">
-<textarea id="reviewText" placeholder="Ваш отзыв"></textarea>
-<button id="reviewBtn">Отправить отзыв</button>
-</div>
-
-<div id="reviewsFeed" style="width:100%; max-width:500px;"></div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import {
@@ -51,9 +6,17 @@ serverTimestamp, updateDoc, doc, increment
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 import {
-getAuth, signInWithPopup, GoogleAuthProvider,
-onAuthStateChanged, signOut
+getAuth,
+GoogleAuthProvider,
+onAuthStateChanged,
+signOut,
+signInWithRedirect,
+getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+/* ======================
+   FIREBASE CONFIG
+====================== */
 
 const firebaseConfig = {
 apiKey: "ТВОЙ_API_KEY",
@@ -80,27 +43,47 @@ const mainForm = document.getElementById("mainForm");
 const reviewForm = document.getElementById("reviewForm");
 
 loginBtn.onclick = async () => {
-await signInWithPopup(auth, provider);
+  try {
+    await signInWithRedirect(auth, provider);
+  } catch (error) {
+    console.error("Ошибка входа:", error);
+    alert(error.message);
+  }
 };
 
 logoutBtn.onclick = async () => {
-await signOut(auth);
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Ошибка выхода:", error);
+  }
 };
 
+/* Проверяем результат редиректа */
+getRedirectResult(auth)
+  .then((result) => {
+    if (result?.user) {
+      console.log("Успешный вход:", result.user.displayName);
+    }
+  })
+  .catch((error) => {
+    console.error("Ошибка redirect:", error);
+  });
+
 onAuthStateChanged(auth, (user) => {
-if (user) {
-userInfo.textContent = "Вы вошли как: " + user.displayName;
-loginBtn.classList.add("hidden");
-logoutBtn.classList.remove("hidden");
-mainForm.classList.remove("hidden");
-reviewForm.classList.remove("hidden");
-} else {
-userInfo.textContent = "Вы не авторизованы";
-loginBtn.classList.remove("hidden");
-logoutBtn.classList.add("hidden");
-mainForm.classList.add("hidden");
-reviewForm.classList.add("hidden");
-}
+  if (user) {
+    userInfo.textContent = "Вы вошли как: " + user.displayName;
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    mainForm.classList.remove("hidden");
+    reviewForm.classList.remove("hidden");
+  } else {
+    userInfo.textContent = "Вы не авторизованы";
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+    mainForm.classList.add("hidden");
+    reviewForm.classList.add("hidden");
+  }
 });
 
 /* ======================
@@ -108,17 +91,26 @@ reviewForm.classList.add("hidden");
 ====================== */
 
 window.processLike = async (id) => {
-const docRef = doc(db, "requests", id);
-await updateDoc(docRef, { likes: increment(1) });
+  try {
+    const docRef = doc(db, "requests", id);
+    await updateDoc(docRef, { likes: increment(1) });
+  } catch (error) {
+    console.error("Ошибка лайка:", error);
+  }
 };
 
 document.getElementById('mainBtn').onclick = async () => {
-await addDoc(collection(db, "requests"), {
-name: document.getElementById('name').value,
-email: document.getElementById('email').value,
-likes: 0,
-timestamp: serverTimestamp()
-});
+  try {
+    await addDoc(collection(db, "requests"), {
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      likes: 0,
+      timestamp: serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Ошибка записи:", error);
+    alert(error.message);
+  }
 };
 
 /* ======================
@@ -127,19 +119,19 @@ timestamp: serverTimestamp()
 
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
-const feed = document.getElementById('feed');
-feed.innerHTML = "";
-snapshot.forEach((docItem) => {
-const data = docItem.data();
-feed.innerHTML += `
-<div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-<b>${data.name}</b>
-<p>${data.email}</p>
-<button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
-</div>
-`;
-});
+  const feed = document.getElementById('feed');
+  feed.innerHTML = "";
+  snapshot.forEach((docItem) => {
+    const data = docItem.data();
+    feed.innerHTML += `
+      <div class="post">
+        <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+        <b>${data.name}</b>
+        <p>${data.email}</p>
+        <button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
+      </div>
+    `;
+  });
 });
 
 /* ======================
@@ -147,29 +139,31 @@ feed.innerHTML += `
 ====================== */
 
 document.getElementById("reviewBtn").onclick = async () => {
-await addDoc(collection(db, "reviews"), {
-name: document.getElementById("reviewName").value,
-text: document.getElementById("reviewText").value,
-timestamp: serverTimestamp()
-});
+  try {
+    await addDoc(collection(db, "reviews"), {
+      name: document.getElementById("reviewName").value,
+      text: document.getElementById("reviewText").value,
+      timestamp: serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Ошибка отзыва:", error);
+    alert(error.message);
+  }
 };
 
 const reviewQuery = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
 onSnapshot(reviewQuery, (snapshot) => {
-const reviewsFeed = document.getElementById("reviewsFeed");
-reviewsFeed.innerHTML = "";
-snapshot.forEach((docItem) => {
-const data = docItem.data();
-reviewsFeed.innerHTML += `
-<div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-<b>${data.name}</b>
-<p>${data.text}</p>
-</div>
-`;
-});
+  const reviewsFeed = document.getElementById("reviewsFeed");
+  reviewsFeed.innerHTML = "";
+  snapshot.forEach((docItem) => {
+    const data = docItem.data();
+    reviewsFeed.innerHTML += `
+      <div class="post">
+        <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+        <b>${data.name}</b>
+        <p>${data.text}</p>
+      </div>
+    `;
+  });
 });
 </script>
-
-</body>
-</html>
