@@ -7,26 +7,34 @@
 body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
 .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px; }
 input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; }
+button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; margin-top:5px;}
 button:disabled { background: #999; cursor: not-allowed; }
 .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
 .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; }
 .time { font-size: 11px; color: #999; float: right; }
-footer { margin-top:40px; font-size:13px; color:#666; text-align:center; max-width:500px; }
+.hidden { display:none; }
+.auth-info { font-size:13px; margin-bottom:10px; color:#444; }
 </style>
 </head>
 <body>
 
 <div class="container">
+<h3>Авторизация</h3>
+<div class="auth-info" id="userInfo">Вы не авторизованы</div>
+<button id="loginBtn">Войти через Google</button>
+<button id="logoutBtn" class="hidden">Выйти</button>
+</div>
+
+<div class="container hidden" id="mainForm">
 <h3>Панель управления данными</h3>
 <input type="text" id="name" placeholder="Имя профиля">
 <input type="email" id="email" placeholder="Рабочий Email">
-<button id="mainBtn">Опубликовать в облако</button>
+<button id="mainBtn">Опубликовать</button>
 </div>
 
 <div id="feed" style="width:100%; max-width:500px;"></div>
 
-<div class="container">
+<div class="container hidden" id="reviewForm">
 <h3>Оставить отзыв</h3>
 <input type="text" id="reviewName" placeholder="Ваше имя">
 <textarea id="reviewText" placeholder="Ваш отзыв"></textarea>
@@ -35,18 +43,17 @@ footer { margin-top:40px; font-size:13px; color:#666; text-align:center; max-wid
 
 <div id="reviewsFeed" style="width:100%; max-width:500px;"></div>
 
-<footer>
-<b>Информация о сайте:</b><br>
-Все данные хранятся в защищённой облачной базе данных.<br>
-Сайт использует безопасное соединение и серверную валидацию.
-</footer>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, query, orderBy, onSnapshot,
 serverTimestamp, updateDoc, doc, increment
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+import {
+getAuth, signInWithPopup, GoogleAuthProvider,
+onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 const firebaseConfig = {
 apiKey: "ТВОЙ_API_KEY",
@@ -59,44 +66,64 @@ appId: "ТВОЙ_APP_ID"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+/* ======================
+   АВТОРИЗАЦИЯ
+====================== */
+
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userInfo = document.getElementById("userInfo");
+const mainForm = document.getElementById("mainForm");
+const reviewForm = document.getElementById("reviewForm");
+
+loginBtn.onclick = async () => {
+await signInWithPopup(auth, provider);
+};
+
+logoutBtn.onclick = async () => {
+await signOut(auth);
+};
+
+onAuthStateChanged(auth, (user) => {
+if (user) {
+userInfo.textContent = "Вы вошли как: " + user.displayName;
+loginBtn.classList.add("hidden");
+logoutBtn.classList.remove("hidden");
+mainForm.classList.remove("hidden");
+reviewForm.classList.remove("hidden");
+} else {
+userInfo.textContent = "Вы не авторизованы";
+loginBtn.classList.remove("hidden");
+logoutBtn.classList.add("hidden");
+mainForm.classList.add("hidden");
+reviewForm.classList.add("hidden");
+}
+});
 
 /* ======================
    ОСНОВНЫЕ ЗАПИСИ
 ====================== */
 
 window.processLike = async (id) => {
-try {
 const docRef = doc(db, "requests", id);
 await updateDoc(docRef, { likes: increment(1) });
-} catch (error) {
-console.error("Ошибка лайка:", error);
-}
 };
 
 document.getElementById('mainBtn').onclick = async () => {
-const name = document.getElementById('name').value.trim();
-const email = document.getElementById('email').value.trim();
-
-if (!name || !email) {
-alert("Заполните все поля");
-return;
-}
-
-try {
 await addDoc(collection(db, "requests"), {
-name,
-email,
+name: document.getElementById('name').value,
+email: document.getElementById('email').value,
 likes: 0,
 timestamp: serverTimestamp()
 });
-document.getElementById('name').value = "";
-document.getElementById('email').value = "";
-alert("Данные отправлены");
-} catch (error) {
-console.error("Ошибка отправки:", error);
-alert("Ошибка отправки. Проверь консоль.");
-}
 };
+
+/* ======================
+   ОТОБРАЖЕНИЕ
+====================== */
 
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
@@ -116,31 +143,15 @@ feed.innerHTML += `
 });
 
 /* ======================
-   СИСТЕМА ОТЗЫВОВ
+   ОТЗЫВЫ
 ====================== */
 
 document.getElementById("reviewBtn").onclick = async () => {
-const name = document.getElementById("reviewName").value.trim();
-const text = document.getElementById("reviewText").value.trim();
-
-if (!name || !text) {
-alert("Заполните все поля");
-return;
-}
-
-try {
 await addDoc(collection(db, "reviews"), {
-name,
-text,
+name: document.getElementById("reviewName").value,
+text: document.getElementById("reviewText").value,
 timestamp: serverTimestamp()
 });
-document.getElementById("reviewName").value = "";
-document.getElementById("reviewText").value = "";
-alert("Отзыв отправлен");
-} catch (error) {
-console.error("Ошибка отзыва:", error);
-alert("Ошибка отправки. Проверь консоль.");
-}
 };
 
 const reviewQuery = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
