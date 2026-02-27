@@ -65,7 +65,6 @@ const firebaseConfig = {
   appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
   measurementId: "G-5NDDW98698"
 };
-};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -100,10 +99,8 @@ logoutBtn.onclick = async () => {
   await signOut(auth);
 };
 
-// ВОТ ЗДЕСЬ БЫЛА ОШИБКА. ТЕПЕРЬ ТУТ ЧИСТЫЙ БЛОК.
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // Если пользователь вошел
     userInfo.textContent = "Вы вошли как: " + user.displayName;
 
     if (user.photoURL) {
@@ -116,7 +113,6 @@ onAuthStateChanged(auth, (user) => {
     mainForm.classList.remove("hidden");
     reviewForm.classList.remove("hidden");
   } else {
-    // Если пользователь не вошел
     userInfo.textContent = "Вы не авторизованы";
 
     userAvatar.classList.add("hidden");
