@@ -96,46 +96,11 @@ loginBtn.onclick = async () => {
 };
 
 logoutBtn.onclick = async () => {
-await signOut(auth);
+  await signOut(auth);
 };
 
+// ВОТ ЗДЕСЬ БЫЛА ОШИБКА. ТЕПЕРЬ ТУТ ЧИСТЫЙ БЛОК.
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // Если пользователь вошел
-    userInfo.textContent = "Вы вошли как: " + user.displayName;
-
-    if (user.photoURL) {
-      userAvatar.src = user.photoURL;
-      userAvatar.classList.remove("hidden");
-    }
-
-    loginBtn.classList.add("hidden");
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    userInfo.textContent = "Вы вошли как: " + user.displayName;
-
-    if (user.photoURL) {
-      userAvatar.src = user.photoURL;
-      userAvatar.classList.remove("hidden");
-    }
-
-    loginBtn.classList.add("hidden");
-    logoutBtn.classList.remove("hidden");
-    mainForm.classList.remove("hidden");
-    reviewForm.classList.remove("hidden");
-
-  } else {
-    userInfo.textContent = "Вы не авторизованы";
-
-    userAvatar.classList.add("hidden");
-    userAvatar.src = "";
-
-    loginBtn.classList.remove("hidden");
-    logoutBtn.classList.add("hidden");
-    mainForm.classList.add("hidden");
-    reviewForm.classList.add("hidden");
-  }
-});
   if (user) {
     // Если пользователь вошел
     userInfo.textContent = "Вы вошли как: " + user.displayName;
@@ -161,19 +126,6 @@ onAuthStateChanged(auth, (user) => {
     mainForm.classList.add("hidden");
     reviewForm.classList.add("hidden");
   }
-}); // Строго одна закрывающая скобка для функции
-userInfo.textContent = "Вы вошли как: " + user.displayName;
-loginBtn.classList.add("hidden");
-logoutBtn.classList.remove("hidden");
-mainForm.classList.remove("hidden");
-reviewForm.classList.remove("hidden");
-} else {
-userInfo.textContent = "Вы не авторизованы";
-loginBtn.classList.remove("hidden");
-logoutBtn.classList.add("hidden");
-mainForm.classList.add("hidden");
-reviewForm.classList.add("hidden");
-}
 });
 
 /* ======================
@@ -181,17 +133,17 @@ reviewForm.classList.add("hidden");
 ====================== */
 
 window.processLike = async (id) => {
-const docRef = doc(db, "requests", id);
-await updateDoc(docRef, { likes: increment(1) });
+  const docRef = doc(db, "requests", id);
+  await updateDoc(docRef, { likes: increment(1) });
 };
 
 document.getElementById('mainBtn').onclick = async () => {
-await addDoc(collection(db, "requests"), {
-name: document.getElementById('name').value,
-email: document.getElementById('email').value,
-likes: 0,
-timestamp: serverTimestamp()
-});
+  await addDoc(collection(db, "requests"), {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    likes: 0,
+    timestamp: serverTimestamp()
+  });
 };
 
 /* ======================
@@ -200,19 +152,19 @@ timestamp: serverTimestamp()
 
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
-const feed = document.getElementById('feed');
-feed.innerHTML = "";
-snapshot.forEach((docItem) => {
-const data = docItem.data();
-feed.innerHTML += `
-<div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-<b>${data.name}</b>
-<p>${data.email}</p>
-<button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
-</div>
-`;
-});
+  const feed = document.getElementById('feed');
+  feed.innerHTML = "";
+  snapshot.forEach((docItem) => {
+    const data = docItem.data();
+    feed.innerHTML += `
+    <div class="post">
+      <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+      <b>${data.name}</b>
+      <p>${data.email}</p>
+      <button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
+    </div>
+    `;
+  });
 });
 
 /* ======================
@@ -220,27 +172,27 @@ feed.innerHTML += `
 ====================== */
 
 document.getElementById("reviewBtn").onclick = async () => {
-await addDoc(collection(db, "reviews"), {
-name: document.getElementById("reviewName").value,
-text: document.getElementById("reviewText").value,
-timestamp: serverTimestamp()
-});
+  await addDoc(collection(db, "reviews"), {
+    name: document.getElementById("reviewName").value,
+    text: document.getElementById("reviewText").value,
+    timestamp: serverTimestamp()
+  });
 };
 
 const reviewQuery = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
 onSnapshot(reviewQuery, (snapshot) => {
-const reviewsFeed = document.getElementById("reviewsFeed");
-reviewsFeed.innerHTML = "";
-snapshot.forEach((docItem) => {
-const data = docItem.data();
-reviewsFeed.innerHTML += `
-<div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-<b>${data.name}</b>
-<p>${data.text}</p>
-</div>
-`;
-});
+  const reviewsFeed = document.getElementById("reviewsFeed");
+  reviewsFeed.innerHTML = "";
+  snapshot.forEach((docItem) => {
+    const data = docItem.data();
+    reviewsFeed.innerHTML += `
+    <div class="post">
+      <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+      <b>${data.name}</b>
+      <p>${data.text}</p>
+    </div>
+    `;
+  });
 });
 </script>
 
