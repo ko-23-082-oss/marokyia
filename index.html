@@ -110,11 +110,21 @@ onAuthStateChanged(auth, (user) => {
     }
 
     loginBtn.classList.add("hidden");
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    userInfo.textContent = "Вы вошли как: " + user.displayName;
+
+    if (user.photoURL) {
+      userAvatar.src = user.photoURL;
+      userAvatar.classList.remove("hidden");
+    }
+
+    loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
     mainForm.classList.remove("hidden");
     reviewForm.classList.remove("hidden");
+
   } else {
-    // Если пользователь не вошел
     userInfo.textContent = "Вы не авторизованы";
 
     userAvatar.classList.add("hidden");
@@ -125,7 +135,7 @@ onAuthStateChanged(auth, (user) => {
     mainForm.classList.add("hidden");
     reviewForm.classList.add("hidden");
   }
-}); // Строго одна закрывающая скобка для функцииonAuthStateChanged(auth, (user) => {
+});
   if (user) {
     // Если пользователь вошел
     userInfo.textContent = "Вы вошли как: " + user.displayName;
