@@ -21,6 +21,7 @@ button:disabled { background: #999; cursor: not-allowed; }
 <div class="container">
 <h3>Авторизация</h3>
 <div class="auth-info" id="userInfo">Вы не авторизованы</div>
+<img id="userAvatar" class="hidden" style="width:50px;height:50px;border-radius:50%;margin-top:10px;">
 <button id="loginBtn">Войти через Google</button>
 <button id="logoutBtn" class="hidden">Выйти</button>
 </div>
@@ -77,6 +78,7 @@ const provider = new GoogleAuthProvider();
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userInfo = document.getElementById("userInfo");
+const userAvatar = document.getElementById("userAvatar");
 const mainForm = document.getElementById("mainForm");
 const reviewForm = document.getElementById("reviewForm");
 
@@ -98,7 +100,31 @@ await signOut(auth);
 };
 
 onAuthStateChanged(auth, (user) => {
-if (user) {
+  if (user) {
+    userInfo.textContent = "Вы вошли как: " + user.displayName;
+
+    if (user.photoURL) {
+      userAvatar.src = user.photoURL;
+      userAvatar.classList.remove("hidden");
+    }
+
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    mainForm.classList.remove("hidden");
+    reviewForm.classList.remove("hidden");
+
+  } else {
+    userInfo.textContent = "Вы не авторизованы";
+
+    userAvatar.classList.add("hidden");
+    userAvatar.src = "";
+
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+    mainForm.classList.add("hidden");
+    reviewForm.classList.add("hidden");
+  }
+});
 userInfo.textContent = "Вы вошли как: " + user.displayName;
 loginBtn.classList.add("hidden");
 logoutBtn.classList.remove("hidden");
