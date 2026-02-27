@@ -80,7 +80,16 @@ const mainForm = document.getElementById("mainForm");
 const reviewForm = document.getElementById("reviewForm");
 
 loginBtn.onclick = async () => {
-await signInWithPopup(auth, provider);
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    if (error.code === "auth/popup-closed-by-user") {
+      console.log("Пользователь закрыл окно авторизации");
+    } else {
+      console.error("Ошибка авторизации:", error);
+      alert("Ошибка входа. Проверьте настройки Firebase.");
+    }
+  }
 };
 
 logoutBtn.onclick = async () => {
