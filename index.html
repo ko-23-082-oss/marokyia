@@ -44,8 +44,21 @@ button:disabled { background: #999; cursor: not-allowed; }
 
 <div id="reviewsFeed" style="width:100%; max-width:500px;"></div>
 
+<!-- ЛИЧНЫЕ СООБЩЕНИЯ -->
+
+<div class="container hidden" id="messageForm">
+<h3>Личные сообщения</h3>
+<input type="text" id="toUser" placeholder="Email получателя">
+<textarea id="messageText" placeholder="Введите сообщение"></textarea>
+<button id="sendMessageBtn">Отправить сообщение</button>
+</div>
+
+<div id="messagesFeed" style="width:100%; max-width:500px;"></div>
+
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
 import {
 getFirestore, collection, addDoc, query, orderBy, onSnapshot,
 serverTimestamp, updateDoc, doc, increment
@@ -57,13 +70,13 @@ onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
-  authDomain: "marokuia.firebaseapp.com",
-  projectId: "marokuia",
-  storageBucket: "marokuia.firebasestorage.app",
-  messagingSenderId: "202954413932",
-  appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
-  measurementId: "G-5NDDW98698"
+apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
+authDomain: "marokuia.firebaseapp.com",
+projectId: "marokuia",
+storageBucket: "marokuia.firebasestorage.app",
+messagingSenderId: "202954413932",
+appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
+measurementId: "G-5NDDW98698"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -79,50 +92,62 @@ const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userInfo = document.getElementById("userInfo");
 const userAvatar = document.getElementById("userAvatar");
+
 const mainForm = document.getElementById("mainForm");
 const reviewForm = document.getElementById("reviewForm");
+const messageForm = document.getElementById("messageForm");
 
 loginBtn.onclick = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (error) {
-    if (error.code === "auth/popup-closed-by-user") {
-      console.log("Пользователь закрыл окно авторизации");
-    } else {
-      console.error("Ошибка авторизации:", error);
-      alert("Ошибка входа. Проверьте настройки Firebase.");
-    }
-  }
+try {
+await signInWithPopup(auth, provider);
+} catch (error) {
+if (error.code === "auth/popup-closed-by-user") {
+console.log("Пользователь закрыл окно авторизации");
+} else {
+console.error("Ошибка авторизации:", error);
+alert("Ошибка входа. Проверьте настройки Firebase.");
+}
+}
 };
 
 logoutBtn.onclick = async () => {
-  await signOut(auth);
+await signOut(auth);
 };
 
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    userInfo.textContent = "Вы вошли как: " + user.displayName;
 
-    if (user.photoURL) {
-      userAvatar.src = user.photoURL;
-      userAvatar.classList.remove("hidden");
-    }
+if (user) {
 
-    loginBtn.classList.add("hidden");
-    logoutBtn.classList.remove("hidden");
-    mainForm.classList.remove("hidden");
-    reviewForm.classList.remove("hidden");
-  } else {
-    userInfo.textContent = "Вы не авторизованы";
+userInfo.textContent = "Вы вошли как: " + user.displayName;
 
-    userAvatar.classList.add("hidden");
-    userAvatar.src = "";
+if (user.photoURL) {
+userAvatar.src = user.photoURL;
+userAvatar.classList.remove("hidden");
+}
 
-    loginBtn.classList.remove("hidden");
-    logoutBtn.classList.add("hidden");
-    mainForm.classList.add("hidden");
-    reviewForm.classList.add("hidden");
-  }
+loginBtn.classList.add("hidden");
+logoutBtn.classList.remove("hidden");
+
+mainForm.classList.remove("hidden");
+reviewForm.classList.remove("hidden");
+messageForm.classList.remove("hidden");
+
+} else {
+
+userInfo.textContent = "Вы не авторизованы";
+
+userAvatar.classList.add("hidden");
+userAvatar.src = "";
+
+loginBtn.classList.remove("hidden");
+logoutBtn.classList.add("hidden");
+
+mainForm.classList.add("hidden");
+reviewForm.classList.add("hidden");
+messageForm.classList.add("hidden");
+
+}
+
 });
 
 /* ======================
@@ -130,38 +155,47 @@ onAuthStateChanged(auth, (user) => {
 ====================== */
 
 window.processLike = async (id) => {
-  const docRef = doc(db, "requests", id);
-  await updateDoc(docRef, { likes: increment(1) });
+const docRef = doc(db, "requests", id);
+await updateDoc(docRef, { likes: increment(1) });
 };
 
 document.getElementById('mainBtn').onclick = async () => {
-  await addDoc(collection(db, "requests"), {
-    name: document.getElementById('name').value,
-    email: document.getElementById('email').value,
-    likes: 0,
-    timestamp: serverTimestamp()
-  });
+
+await addDoc(collection(db, "requests"), {
+name: document.getElementById('name').value,
+email: document.getElementById('email').value,
+likes: 0,
+timestamp: serverTimestamp()
+});
+
 };
 
 /* ======================
-   ОТОБРАЖЕНИЕ
+   ОТОБРАЖЕНИЕ ПОСТОВ
 ====================== */
 
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+
 onSnapshot(q, (snapshot) => {
-  const feed = document.getElementById('feed');
-  feed.innerHTML = "";
-  snapshot.forEach((docItem) => {
-    const data = docItem.data();
-    feed.innerHTML += `
-    <div class="post">
-      <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-      <b>${data.name}</b>
-      <p>${data.email}</p>
-      <button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
-    </div>
-    `;
-  });
+
+const feed = document.getElementById('feed');
+feed.innerHTML = "";
+
+snapshot.forEach((docItem) => {
+
+const data = docItem.data();
+
+feed.innerHTML += `
+<div class="post">
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<b>${data.name}</b>
+<p>${data.email}</p>
+<button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
+</div>
+`;
+
+});
+
 });
 
 /* ======================
@@ -169,28 +203,98 @@ onSnapshot(q, (snapshot) => {
 ====================== */
 
 document.getElementById("reviewBtn").onclick = async () => {
-  await addDoc(collection(db, "reviews"), {
-    name: document.getElementById("reviewName").value,
-    text: document.getElementById("reviewText").value,
-    timestamp: serverTimestamp()
-  });
+
+await addDoc(collection(db, "reviews"), {
+name: document.getElementById("reviewName").value,
+text: document.getElementById("reviewText").value,
+timestamp: serverTimestamp()
+});
+
 };
 
 const reviewQuery = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
+
 onSnapshot(reviewQuery, (snapshot) => {
-  const reviewsFeed = document.getElementById("reviewsFeed");
-  reviewsFeed.innerHTML = "";
-  snapshot.forEach((docItem) => {
-    const data = docItem.data();
-    reviewsFeed.innerHTML += `
-    <div class="post">
-      <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-      <b>${data.name}</b>
-      <p>${data.text}</p>
-    </div>
-    `;
-  });
+
+const reviewsFeed = document.getElementById("reviewsFeed");
+reviewsFeed.innerHTML = "";
+
+snapshot.forEach((docItem) => {
+
+const data = docItem.data();
+
+reviewsFeed.innerHTML += `
+<div class="post">
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<b>${data.name}</b>
+<p>${data.text}</p>
+</div>
+`;
+
 });
+
+});
+
+/* ======================
+   ЛИЧНЫЕ СООБЩЕНИЯ
+====================== */
+
+document.getElementById("sendMessageBtn").onclick = async () => {
+
+const user = auth.currentUser;
+
+if(!user) return;
+
+const toUser = document.getElementById("toUser").value;
+const text = document.getElementById("messageText").value;
+
+await addDoc(collection(db, "messages"), {
+from: user.email,
+to: toUser,
+text: text,
+timestamp: serverTimestamp()
+});
+
+document.getElementById("messageText").value="";
+
+};
+
+onAuthStateChanged(auth, (user)=>{
+
+if(!user) return;
+
+const messageQuery = query(
+collection(db,"messages"),
+orderBy("timestamp","desc")
+);
+
+onSnapshot(messageQuery,(snapshot)=>{
+
+const feed = document.getElementById("messagesFeed");
+feed.innerHTML="";
+
+snapshot.forEach((docItem)=>{
+
+const data = docItem.data();
+
+if(data.to === user.email || data.from === user.email){
+
+feed.innerHTML += `
+<div class="post">
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<b>${data.from}</b> → <b>${data.to}</b>
+<p>${data.text}</p>
+</div>
+`;
+
+}
+
+});
+
+});
+
+});
+
 </script>
 
 </body>
