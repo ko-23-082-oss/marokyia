@@ -3,125 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <title>marokyia</title>
+
 <style>
-body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px; }
-input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; margin-top:5px;}
-button:disabled { background: #999; cursor: not-allowed; }
-.post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
-.like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; }
-.time { font-size: 11px; color: #999; float: right; }
-.hidden { display:none; }
-.auth-info { font-size:13px; margin-bottom:10px; color:#444; }
+
+body{
+font-family:'Inter',sans-serif;
+background:#f4f7f6;
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:20px;
+}
+
+.container{
+width:100%;
+max-width:500px;
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.05);
+margin-bottom:20px;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:1px solid #ddd;
+border-radius:6px;
+box-sizing:border-box;
+}
+
+button{
+background:#007bff;
+color:white;
+border:none;
+padding:12px;
+border-radius:6px;
+width:100%;
+font-weight:600;
+cursor:pointer;
+margin-top:5px;
+}
+
+.post{
+background:#fff;
+border:1px solid #eaeaea;
+padding:15px;
+margin-top:15px;
+border-radius:8px;
+width:100%;
+max-width:500px;
+}
+
+.like-btn{
+cursor:pointer;
+border:none;
+background:#f8f9fa;
+padding:5px 12px;
+border-radius:20px;
+}
+
+.time{
+font-size:11px;
+color:#999;
+float:right;
+}
+
+.hidden{
+display:none;
+}
+
 </style>
 </head>
+
 <body>
 
 <div class="container">
+
 <h3>Авторизация</h3>
-<div class="auth-info" id="userInfo">Вы не авторизованы</div>
+
+<div id="userInfo">Вы не авторизованы</div>
+
 <img id="userAvatar" class="hidden" style="width:50px;height:50px;border-radius:50%;margin-top:10px;">
+
 <button id="loginBtn">Войти через Google</button>
+
 <button id="logoutBtn" class="hidden">Выйти</button>
+
 </div>
+
 
 <div class="container hidden" id="mainForm">
+
 <h3>Панель управления данными</h3>
-<input type="text" id="name" placeholder="Имя профиля">
-<input type="email" id="email" placeholder="Рабочий Email">
+
+<input id="name" placeholder="Имя профиля">
+
+<input id="email" placeholder="Рабочий Email">
+
 <button id="mainBtn">Опубликовать</button>
+
 </div>
 
-<div id="feed" style="width:100%; max-width:500px;"></div>
+
+<div id="feed" style="width:100%;max-width:500px;"></div>
+
 
 <div class="container hidden" id="reviewForm">
+
 <h3>Оставить отзыв</h3>
-<input type="text" id="reviewName" placeholder="Ваше имя">
+
+<input id="reviewName" placeholder="Ваше имя">
+
 <textarea id="reviewText" placeholder="Ваш отзыв"></textarea>
+
 <button id="reviewBtn">Отправить отзыв</button>
+
 </div>
 
-<div id="reviewsFeed" style="width:100%; max-width:500px;"></div>
 
-<!-- ЛИЧНЫЕ СООБЩЕНИЯ -->
+<div id="reviewsFeed" style="width:100%;max-width:500px;"></div>
+
 
 <div class="container hidden" id="messageForm">
+
 <h3>Личные сообщения</h3>
-<input type="text" id="toUser" placeholder="Email получателя">
+
+<input id="toUser" placeholder="Email получателя">
+
 <textarea id="messageText" placeholder="Введите сообщение"></textarea>
+
 <button id="sendMessageBtn">Отправить сообщение</button>
+
 </div>
 
-<div id="messagesFeed" style="width:100%; max-width:500px;"></div>
+
+<div id="messagesFeed" style="width:100%;max-width:500px;"></div>
+
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 
 import {
-getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-serverTimestamp, updateDoc, doc, increment
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+getFirestore,
+collection,
+addDoc,
+query,
+orderBy,
+onSnapshot,
+serverTimestamp,
+updateDoc,
+doc,
+increment
+}
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
 
 import {
-getAuth, signInWithPopup, GoogleAuthProvider,
-onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+getAuth,
+signInWithPopup,
+GoogleAuthProvider,
+onAuthStateChanged,
+signOut
+}
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
-authDomain: "marokuia.firebaseapp.com",
-projectId: "marokuia",
-storageBucket: "marokuia.firebasestorage.app",
-messagingSenderId: "202954413932",
-appId: "1:202954413932:web:0d6f7a09111edb09ecc549",
-measurementId: "G-5NDDW98698"
+
+const firebaseConfig={
+apiKey:"AIzaSyC4DKSosWcPardP2_Yo6jqVyJvt4vE8LJA",
+authDomain:"marokuia.firebaseapp.com",
+projectId:"marokuia",
+storageBucket:"marokuia.firebasestorage.app",
+messagingSenderId:"202954413932",
+appId:"1:202954413932:web:0d6f7a09111edb09ecc549"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
 
-/* ======================
-   АВТОРИЗАЦИЯ
-====================== */
+const app=initializeApp(firebaseConfig);
 
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const userInfo = document.getElementById("userInfo");
-const userAvatar = document.getElementById("userAvatar");
+const db=getFirestore(app);
 
-const mainForm = document.getElementById("mainForm");
-const reviewForm = document.getElementById("reviewForm");
-const messageForm = document.getElementById("messageForm");
+const auth=getAuth(app);
 
-loginBtn.onclick = async () => {
-try {
-await signInWithPopup(auth, provider);
-} catch (error) {
-if (error.code === "auth/popup-closed-by-user") {
-console.log("Пользователь закрыл окно авторизации");
-} else {
-console.error("Ошибка авторизации:", error);
-alert("Ошибка входа. Проверьте настройки Firebase.");
-}
-}
+const provider=new GoogleAuthProvider();
+
+
+const loginBtn=document.getElementById("loginBtn");
+
+const logoutBtn=document.getElementById("logoutBtn");
+
+const userInfo=document.getElementById("userInfo");
+
+const userAvatar=document.getElementById("userAvatar");
+
+const mainForm=document.getElementById("mainForm");
+
+const reviewForm=document.getElementById("reviewForm");
+
+const messageForm=document.getElementById("messageForm");
+
+
+loginBtn.onclick=async()=>{
+await signInWithPopup(auth,provider);
 };
 
-logoutBtn.onclick = async () => {
+
+logoutBtn.onclick=async()=>{
 await signOut(auth);
 };
 
-onAuthStateChanged(auth, (user) => {
 
-if (user) {
+onAuthStateChanged(auth,(user)=>{
 
-userInfo.textContent = "Вы вошли как: " + user.displayName;
+if(user){
 
-if (user.photoURL) {
-userAvatar.src = user.photoURL;
+userInfo.textContent="Вы вошли как: "+user.displayName;
+
+if(user.photoURL){
+userAvatar.src=user.photoURL;
 userAvatar.classList.remove("hidden");
 }
 
@@ -132,12 +233,9 @@ mainForm.classList.remove("hidden");
 reviewForm.classList.remove("hidden");
 messageForm.classList.remove("hidden");
 
-} else {
+}else{
 
-userInfo.textContent = "Вы не авторизованы";
-
-userAvatar.classList.add("hidden");
-userAvatar.src = "";
+userInfo.textContent="Вы не авторизованы";
 
 loginBtn.classList.remove("hidden");
 logoutBtn.classList.add("hidden");
@@ -150,47 +248,51 @@ messageForm.classList.add("hidden");
 
 });
 
-/* ======================
-   ОСНОВНЫЕ ЗАПИСИ
-====================== */
 
-window.processLike = async (id) => {
-const docRef = doc(db, "requests", id);
-await updateDoc(docRef, { likes: increment(1) });
+window.processLike=async(id)=>{
+
+const docRef=doc(db,"requests",id);
+
+await updateDoc(docRef,{likes:increment(1)});
+
 };
 
-document.getElementById('mainBtn').onclick = async () => {
 
-await addDoc(collection(db, "requests"), {
-name: document.getElementById('name').value,
-email: document.getElementById('email').value,
-likes: 0,
-timestamp: serverTimestamp()
+document.getElementById("mainBtn").onclick=async()=>{
+
+await addDoc(collection(db,"requests"),{
+
+name:document.getElementById("name").value,
+
+email:document.getElementById("email").value,
+
+likes:0,
+
+timestamp:serverTimestamp()
+
 });
 
 };
 
-/* ======================
-   ОТОБРАЖЕНИЕ ПОСТОВ
-====================== */
 
-const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+const q=query(collection(db,"requests"),orderBy("timestamp","desc"));
 
-onSnapshot(q, (snapshot) => {
+onSnapshot(q,(snapshot)=>{
 
-const feed = document.getElementById('feed');
-feed.innerHTML = "";
+const feed=document.getElementById("feed");
 
-snapshot.forEach((docItem) => {
+feed.innerHTML="";
 
-const data = docItem.data();
+snapshot.forEach((docItem)=>{
 
-feed.innerHTML += `
+const data=docItem.data();
+
+feed.innerHTML+=`
 <div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString()||'...'}</span>
 <b>${data.name}</b>
 <p>${data.email}</p>
-<button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes || 0}</button>
+<button class="like-btn" onclick="processLike('${docItem.id}')">👍 ${data.likes||0}</button>
 </div>
 `;
 
@@ -198,34 +300,37 @@ feed.innerHTML += `
 
 });
 
-/* ======================
-   ОТЗЫВЫ
-====================== */
 
-document.getElementById("reviewBtn").onclick = async () => {
+document.getElementById("reviewBtn").onclick=async()=>{
 
-await addDoc(collection(db, "reviews"), {
-name: document.getElementById("reviewName").value,
-text: document.getElementById("reviewText").value,
-timestamp: serverTimestamp()
+await addDoc(collection(db,"reviews"),{
+
+name:document.getElementById("reviewName").value,
+
+text:document.getElementById("reviewText").value,
+
+timestamp:serverTimestamp()
+
 });
 
 };
 
-const reviewQuery = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
 
-onSnapshot(reviewQuery, (snapshot) => {
+const reviewQuery=query(collection(db,"reviews"),orderBy("timestamp","desc"));
 
-const reviewsFeed = document.getElementById("reviewsFeed");
-reviewsFeed.innerHTML = "";
+onSnapshot(reviewQuery,(snapshot)=>{
 
-snapshot.forEach((docItem) => {
+const reviewsFeed=document.getElementById("reviewsFeed");
 
-const data = docItem.data();
+reviewsFeed.innerHTML="";
 
-reviewsFeed.innerHTML += `
+snapshot.forEach((docItem)=>{
+
+const data=docItem.data();
+
+reviewsFeed.innerHTML+=`
 <div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString()||'...'}</span>
 <b>${data.name}</b>
 <p>${data.text}</p>
 </div>
@@ -235,61 +340,67 @@ reviewsFeed.innerHTML += `
 
 });
 
-/* ======================
-   ЛИЧНЫЕ СООБЩЕНИЯ
-====================== */
 
-document.getElementById("sendMessageBtn").onclick = async () => {
+document.getElementById("sendMessageBtn").onclick=async()=>{
 
-const user = auth.currentUser;
+const user=auth.currentUser;
 
-if(!user) return;
+if(!user)return;
 
-const toUser = document.getElementById("toUser").value;
-const text = document.getElementById("messageText").value;
+const toUser=document.getElementById("toUser").value.trim();
 
-await addDoc(collection(db, "messages"), {
-from: user.email,
-to: toUser,
-text: text,
-timestamp: serverTimestamp()
+const text=document.getElementById("messageText").value.trim();
+
+if(!toUser||!text){
+
+alert("Введите email и сообщение");
+
+return;
+
+}
+
+await addDoc(collection(db,"messages"),{
+
+from:user.email,
+
+to:toUser,
+
+text:text,
+
+timestamp:serverTimestamp()
+
 });
 
 document.getElementById("messageText").value="";
 
 };
 
-onAuthStateChanged(auth, (user)=>{
 
-if(!user) return;
+onSnapshot(query(collection(db,"messages"),orderBy("timestamp","desc")),(snapshot)=>{
 
-const messageQuery = query(
-collection(db,"messages"),
-orderBy("timestamp","desc")
-);
+const user=auth.currentUser;
 
-onSnapshot(messageQuery,(snapshot)=>{
+if(!user)return;
 
-const feed = document.getElementById("messagesFeed");
+const feed=document.getElementById("messagesFeed");
+
 feed.innerHTML="";
 
 snapshot.forEach((docItem)=>{
 
-const data = docItem.data();
+const data=docItem.data();
 
-if(data.to === user.email || data.from === user.email){
+if(data.to===user.email||data.from===user.email){
 
-feed.innerHTML += `
+feed.innerHTML+=`
 <div class="post">
-<span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+<span class="time">${data.timestamp?.toDate().toLocaleTimeString()||'...'}</span>
 <b>${data.from}</b> → <b>${data.to}</b>
 <p>${data.text}</p>
 </div>
 `;
 
 }
-
-});
 
 });
 
